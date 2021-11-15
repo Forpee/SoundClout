@@ -1,0 +1,17 @@
+<!-- Top Bar -->
+<div
+  class="buy-deso__container p-16px"
+  style="padding-top: 0px"
+>
+  <span class="mint-nft__title mb-5px">Buy Complete</span>
+  <div class="w-100 border-bottom"></div>
+  <div class="fs-15px pt-16px pb-30px">
+    <div class="mint-nft__title" style="font-size: 20px">
+      New balance:
+      {{ globalVars.nanosToDeSo(globalVars.loggedInUser.BalanceNanos, 9) }} $DESO
+    </div>
+
+    <button class="primary-button mt-15px" (click)="buyMoreDeSoClicked.emit()">Buy more DESO</button>
+
+  </div>
+</div>

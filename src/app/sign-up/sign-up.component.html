@@ -1,0 +1,79 @@
+<app-page>
+  <div class="nft-modal-container w-100 pl-15px pr-15px">
+    <!-- Step 3 -->
+    <div *ngIf="stepNum == 3">
+      <!-- Get starter DeSo -->
+      <sign-up-get-starter-deso
+        [displayForSignupFlow]="true"
+        (backToPreviousSignupStepClicked)="backToPreviousSignupStepClicked()"
+        (skipButtonClicked)="skipButtonClickedOnStarterDeSoStep()"
+        (phoneNumberVerified)="phoneNumberVerified()"
+      ></sign-up-get-starter-deso>
+    </div>
+
+    <!-- Step 4 -->
+    <div *ngIf="stepNum == 4">
+      <div *ngIf="showPhoneNumberVerifiedContent" class="border-color-grey border-bottom py-15px">
+        <div class="p-15px br-12px background-color-grey fs-15px">
+          Your phone number was verified. We sent you a small amount of DeSo, which is enough to post and follow
+          people.
+        </div>
+      </div>
+
+      <div class="mint-nft__title mt-20px">Stay in the loop</div>
+      <div class="mint-nft__sub-title">STEP 4 of 4</div>
+      <div class="mint-nft__text mt-16px">Get notified when someone buys your coin.</div>
+      <div class="fs-15px pt-30px">E-mail</div>
+      <div class="form-group pt-10px">
+        <input
+          type="email"
+          class="form-control fs-15px"
+          placeholder="Enter an email address."
+          [(ngModel)]="emailAddress"
+          style="border-radius: 16px"
+        />
+        <div class="fc-red fs-15px mt-10px" *ngIf="invalidEmailEntered">Please enter a valid email address.</div>
+      </div>
+      <div class="d-flex justify-content-end mb-20px">
+        <button (click)="notificationsStepSkipped()" class="plain-button" style="width: 80px">Skip</button>
+        <button
+          *ngIf="!storingEmailAndPhone"
+          (click)="notificationsStepNext()"
+          class="primary-button ml-10px"
+          [ngClass]="{
+            'btn-loading': storingEmailAndPhone
+          }"
+          style="width: 80px"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+
+    <!-- Finished -->
+    <div *ngIf="stepNum == 5">
+      <div class="mint-nft__title mt-20px">
+        Buy $DESO
+      </div>
+      <div class="fs-18px pt-15px">
+        <span>
+          $DESO is a
+          <b>cryptocurrency</b>
+          like Bitcoin, only it powers the first
+          <b>decentralized social network</b>
+          .
+        </span>
+      </div>
+      <div class="fs-18px pt-30px mb-10px">
+        You can use $DESO to trade creator coins, give Diamonds, buy NFTs, and much more.
+      </div>
+
+      <div class="d-flex justify-content-end mt-15px pt-10px mb-20px">
+        <button (click)="buyDeSoSkipped()" class="plain-button" style="width: 80px">Skip</button>
+        <button (click)="buyDeSoClicked()" class="primary-button ml-10px" style="width: 120px">
+          Buy $DESO
+        </button>
+      </div>
+    </div>
+  </div>
+</app-page>

@@ -1,0 +1,168 @@
+<div class="d-flex flex-column">
+  <div *ngIf="!isMobile">
+    <!-- Create Post -->
+    <div *ngIf="globalVars.loggedInUser != null" class="desktop-create-post">
+      <feed-create-post
+        [numberOfRowsInTextArea]="2"
+        [postRefreshFunc]="prependPostToFeed.bind(this)"
+      ></feed-create-post>
+    </div>
+  </div>
+
+  <!-- Mobile DeSo Price -->
+  <div *ngIf="isMobile" class="d-flex border-bottom border-color-grey background-color-light-grey py-5px px-15px fs-12px">
+    <div>$DESO Price&nbsp;&nbsp;&nbsp;</div>
+    <div>
+      <span>~{{ globalVars.desoToUSDExchangeRateToDisplay }}</span>
+      <span class="text-muted">&nbsp;USD per coin</span>
+    </div>
+  </div>
+
+  <a
+    *ngIf="globalVars.loggedInUser && userReferral && !isMobile"
+    [routerLink]="'/' + globalVars.RouteNames.REFERRALS"
+  >
+    <div
+      class="feed-desktop-center-banner"
+    >
+      <i-feather name="share-2" class="mr-10px fs-0px"></i-feather>
+      <span class="mr-5px">You have an unlimited <b>{{globalVars.formatUSD(userReferral.Info.RefereeAmountUSDCents / 100, 0)}}</b> referral link</span>
+    </div>
+  </a>
+  <jumio-status *ngIf="globalVars.loggedInUser && !isMobile"></jumio-status>
+
+  <!-- Tab Selector -->
+  <tab-selector
+    [buttonSelector]="!isMobile"
+    [tabs]="feedTabs"
+    [activeTab]="activeTab"
+    [newTabs]="newTabs"
+    (tabClick)="_handleTabClick($event)"
+  ></tab-selector>
+
+  <a
+    *ngIf="globalVars.loggedInUser && userReferral && isMobile"
+    [routerLink]="'/' + globalVars.RouteNames.REFERRALS"
+    class="mt-40px mx-8px"
+    [ngClass]="{
+      'mb-5px': !(
+        globalVars.loggedInUser &&
+        !globalVars.loggedInUser.JumioVerified &&
+        this.globalVars.showFreeMoneyBanner
+      )
+    }"
+  >
+    <div
+      class="feed-desktop-center-banner"
+    >
+      <i-feather name="share-2" class="mr-10px fs-0px"></i-feather>
+      <span class="mr-5px">You have an unlimited <b>{{globalVars.formatUSD(userReferral.Info.RefereeAmountUSDCents / 100, 0)}}</b> referral link</span>
+    </div>
+  </a>
+
+  <countdown-timer *ngIf="nextNFTShowcaseTime"
+    [timerText]="'The next NFT showcase drops in...'"
+    [fontWeight]="500"
+    [timerEnd]="nextNFTShowcaseTime"></countdown-timer>
+
+  <div [id]="getPullToRefreshMarkerId()"></div>
+  <div
+    *ngIf="isMobile && !(globalVars.loggedInUser && userReferral)"
+    style="margin-top: 60px"
+  ></div>
+  <jumio-status
+    [ngStyle]="{
+      'margin-top':
+        globalVars.loggedInUser && userReferral && isMobile
+          ? 'auto'
+          : '-8px'
+    }"
+    *ngIf="globalVars.loggedInUser && isMobile"
+  ></jumio-status>
+  <a
+    *ngIf="
+      globalVars.loggedInUser && activeTab === FeedComponent.FOLLOWING_TAB && followedCount < followBannerThreshold
+    "
+    [routerLink]="['/' + globalVars.RouteNames.BROWSE]"
+    [queryParams]="{ feedTab: FeedComponent.HOT_TAB }"
+    queryParamsHandling="merge"
+    class="mb-5px"
+  >
+    <div
+      class="feed-desktop-center-banner"
+      [ngStyle]="{ 'margin': isMobile ? '0px 8px' : 'auto'}"
+    >
+      <i class="fas fa fa-fire mr-10px"></i>
+      <span class="mr-5px">Find more people to follow in the <b>Hot</b> feed</span>
+    </div>
+  </a>
+  <div *ngIf="activeTab === FeedComponent.SHOWCASE_TAB">
+    <nft-showcase></nft-showcase>
+  </div>
+
+  <!-- Posts -->
+  <div *ngIf="showGlobalOrFollowingOrHotPosts()">
+    <div class="mobile-scroll" *ngFor="let post of postsToShow()">
+      <div *ngIf="post && post.ProfileEntryResponse">
+        <!--
+            The post.parentPost stuff is a hack to make it so that a new comment shows up
+            in the feed with the "replying to @[parentPost.Username]" content diplayed.
+            post.parentPost is set in appendCommentAfterParentPost
+          -->
+        <feed-post
+          *ngIf="!post.IsHidden && !(post.IsNFT && post.NumNFTCopies === post.NumNFTCopiesBurned)"
+          [post]="post"
+          [includePaddingOnPost]="true"
+          [afterCommentCreatedCallback]="appendCommentAfterParentPost.bind(this)"
+          [afterRepostCreatedCallback]="prependPostToFeed.bind(this)"
+          [showReplyingToContent]="!!post.parentPost"
+          [parentPost]="post.parentPost"
+          [contentShouldLinkToThread]="true"
+          [showLeftSelectedBorder]="post.IsPinned"
+          [blocked]="globalVars.hasUserBlockedCreator(post.PosterPublicKeyBase58Check)"
+          [cardStyle]="true"
+          [showNFTDetails]="true"
+          (postDeleted)="onPostHidden($event)"
+          (userBlocked)="userBlocked()"
+        ></feed-post>
+      </div>
+    </div>
+
+    <div
+      *ngIf="showMoreButton()"
+      class="w-100 py-15px d-flex align-items-center justify-content-center cursor-pointer creator-leaderboard__load-more"
+      (click)="loadMorePosts()"
+    >
+      <div *ngIf="!activeTabReadyForDisplay()" class="fs-15px">Load More</div>
+      <div *ngIf="activeTabReadyForDisplay()" class="fs-15px">Loading...</div>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === FeedComponent.SHOWCASE_TAB">
+    <nft-showcase></nft-showcase>
+  </div>
+
+  <div
+    *ngIf="showNoPostsFound()"
+    class="d-flex flex-column align-items-center justify-content-center fc-muted fs-15px p-15px text-center"
+    style="height: 400px"
+  >
+    <div>No posts yet</div>
+
+    <div class="mt-10px">
+      <a
+        class=""
+        [routerLink]="['/' + globalVars.RouteNames.BROWSE]"
+        [queryParams]="{ feedTab: FeedComponent.HOT_TAB }"
+        queryParamsHandling="merge"
+      >
+        Check out the HOT feed
+      </a>
+      to find more people to follow
+    </div>
+  </div>
+  <simple-center-loader *ngIf="showLoadingSpinner()"></simple-center-loader>
+  <!-- SPACER FOR BOTTOM BAR ON MOBILE -->
+<!--  <div class="global__bottom-bar-mobile-height"></div>-->
+<!--  <div class="global__bottom-bar-mobile-height"></div>-->
+</div>
